@@ -25,38 +25,58 @@ let startTime = Date.now();
 // const SECONDS_PER_ROUND = 30;
 let score = 0;
 let elapsedTime = 0;
-let gameoverMenu ;
+let gameoverMenu;
+let stop = document.getElementById("stop");
 let scoreBoard = document.getElementById("scoreBoard");
 let scoreB = document.getElementById("scoreB");
 let startBtn = document.getElementById("startBtn");
 let restartBtn = document.getElementById("resartBtn");
+let newHighScore = 0;
+let newBestTime = 0;
 
+function getHighest(type) {
+  return localStorage.getItem(type);
+}
 
+function save() {
+  let currentHighestScore = getHighest("newHighScore");
+  let currentBestTime = getHighest("newBestTime");
 
+  if (
+    !currentHighestScore ||
+    (currentHighestScore && currentHighestScore < score)
+  ) {
+    localStorage.setItem("newHighScore", score);
+  }
+
+  if (!currentBestTime || (currentBestTime && currentBestTime < elapsedTime)) {
+    localStorage.setItem("newBestTime", elapsedTime);
+  }
+}
 
 function loadImages() {
   bgImage = new Image();
-  bgImage.onload = function() {
+  bgImage.onload = function () {
     // show the background image
     bgReady = true;
   };
   bgImage.src = "img/BG.jpg";
   heroImage = new Image();
-  heroImage.onload = function() {
+  heroImage.onload = function () {
     // show the hero image
     heroReady = true;
   };
   heroImage.src = "img/hero.png";
 
   monsterImage = new Image();
-  monsterImage.onload = function() {
+  monsterImage.onload = function () {
     // show the monster image
     monsterReady = true;
   };
   monsterImage.src = "img/Demon.png";
 
   bullet = new Image();
-  bullet.onload = function() {
+  bullet.onload = function () {
     // show the hero image
     bulletReady = true;
   };
@@ -76,12 +96,21 @@ function loadImages() {
 let heroX = canvas.width / 2;
 let heroY = canvas.height / 2;
 let bs = 15;
+let test = false;
 
 let monsterX = Math.floor(Math.random() * canvas.width);
-    if(monsterX<= 0){monsterX=0;} else if(monsterX+34>canvas.height){monsterX=Math.floor(Math.random() * canvas.width-50)+24}
+if (monsterX <= 0) {
+  monsterX = 0;
+} else if (monsterX + 34 > canvas.height) {
+  monsterX = Math.floor(Math.random() * canvas.width - 50) + 24;
+}
 let monsterY = Math.floor(Math.random() * canvas.height);
-    if(monsterY<= 0){monsterY=0;} else if(monsterY+34>canvas.height){monsterY=Math.floor(Math.random() * canvas.height-50)+24} 
-
+if (monsterY <= 0) {
+  monsterY = 0;
+} else if (monsterY + 34 > canvas.height) {
+  monsterY = Math.floor(Math.random() * canvas.height - 50) + 24;
+}
+let gameOver = false;
 /**
  * Keyboard Listeners
  * You can safely ignore this part, for now.
@@ -89,12 +118,13 @@ let monsterY = Math.floor(Math.random() * canvas.height);
  * This is just to let JavaScript know when the user has pressed a key.
  */
 let keysDown = {};
+
 function setupKeyboardListeners() {
   // Check for keys pressed where key represents the keycode captured
   // For now, do not worry too much about what's happening here.
   addEventListener(
     "keydown",
-    function(key) {
+    function (key) {
       keysDown[key.keyCode] = true;
     },
     false
@@ -102,7 +132,7 @@ function setupKeyboardListeners() {
 
   addEventListener(
     "keyup",
-    function(key) {
+    function (key) {
       delete keysDown[key.keyCode];
     },
     false
@@ -115,26 +145,28 @@ function setupKeyboardListeners() {
  *
  *  If you change the value of 5, the player will move at a different rate.
  */
-let update = function() {
-    
-    function setState(state){
-        gameState= state;
-        showMenu(state);
+let update = function () {
+  function setState(state) {
+    gameState = state;
+    showMenu(state);
+  }
+
+  function displayMenu(menu) {
+    menu.style.visability = "visable";
+  }
+
+  function showMenu(state) {
+    if (state == "GameOver") {
+      displayMenu(gameoverMenu);
     }
- 
-    function displayMenu (menu) {
-        menu.style.visability = "visable";
-    }
- 
-    function showMenu (state){
-        if (state == "GameOver"){
-            displayMenu(gameoverMenu);
-        }
-    }
-    
+  }
+  if (test == true) {
+    return;
+  }
+
   // Update the time.
   elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-    
+
   if (38 in keysDown) {
     // Player is holding up key
     heroY -= 5;
@@ -142,7 +174,6 @@ let update = function() {
   if (40 in keysDown) {
     // Player is holding down key
     heroY += 5;
-
   }
   if (37 in keysDown) {
     // Player is holding left key
@@ -153,39 +184,43 @@ let update = function() {
     heroX += 5;
   }
 
-  if (heroX <0){heroX=canvas.width-34;} else if(heroX+34>canvas.width){heroX=0;}
-  if (heroY <0){heroY=canvas.height-34;} else if(heroY+34>canvas.height){heroY=0;}
+  if (heroX < 0) {
+    heroX = canvas.width - 34;
+  } else if (heroX + 34 > canvas.width) {
+    heroX = 0;
+  }
+  if (heroY < 0) {
+    heroY = canvas.height - 34;
+  } else if (heroY + 34 > canvas.height) {
+    heroY = 0;
+  }
 
   if (elapsedTime % 3 === 0) {
-    bX = monsterX
-    bY = monsterY
-  } 
+    bX = monsterX;
+    bY = monsterY;
+  }
 
-  
+  //   let buX = heroX - monsterX;
+  //   let buY = heroY - monsterY;
+  //   var length = Math.sqrt(buX * buX + buY * buY);
+  //   buX /= length;
+  //   buY /= length;
 
-//   let buX = heroX - monsterX;
-//   let buY = heroY - monsterY;
-//   var length = Math.sqrt(buX * buX + buY * buY);
-//   buX /= length;
-//   buY /= length;
-
-  
-    if((bX,bY)){
+  if ((bX, bY)) {
     // let startX = monsterX + buX * monsterX / 2;
     // let startY = monsterY + buY * monsterX / 2;
     // let endX = startX + buX * 3000;
     // let endY = startY + buY * 3000;
-     x = heroX+15 - monsterX;
-     y = heroY+15 - monsterY;
-    bX += x/20;
-    bY += y/20;}
-    
-
+    x = heroX + 15 - monsterX;
+    y = heroY + 15 - monsterY;
+    bX += Math.round(x / 20);
+    bY += Math.round(y / 20);
+  }
 
   // Check if player and monster collided. Our images
   // are about 32 pixels big.
   if (
-    heroX <= monsterX + 24&&
+    heroX <= monsterX + 24 &&
     monsterX <= heroX + 24 &&
     heroY <= monsterY + 24 &&
     monsterY <= heroY + 24
@@ -193,55 +228,51 @@ let update = function() {
     // Pick a new location for the monster.
     // Note: Change this to place the monster at a new, random location.
     monsterX = Math.floor(Math.random() * canvas.width);
-    if(monsterX<= 0){monsterX=0;} else if(monsterX+34>canvas.height){monsterX=Math.floor(Math.random() * canvas.width-50)}
-    monsterY = Math.floor(Math.random() * canvas.height);
-    if(monsterY<= 0){monsterY=0;} else if(monsterY+34>canvas.height){monsterY=Math.floor(Math.random() * canvas.height-50)}    
-    score +=1
-    
-    
-  }
-  let scoreB =[];
-
-  
-
-    drawScoreboard();
-
-    function drawScoreboard(){
-        scoreB.push(score);
-        document.getElementById("scoreB").innerHTML =`Your Score: ${scoreB}`;
+    if (monsterX <= 0) {
+      monsterX = 0;
+    } else if (monsterX + 34 > canvas.height) {
+      monsterX = Math.floor(Math.random() * canvas.width - 50);
     }
+    monsterY = Math.floor(Math.random() * canvas.height);
+    if (monsterY <= 0) {
+      monsterY = 0;
+    } else if (monsterY + 34 > canvas.height) {
+      monsterY = Math.floor(Math.random() * canvas.height - 50);
+    }
+    score += 1;
+  }
+  let scoreB = [];
 
-    
+  drawScoreboard();
 
+  function drawScoreboard() {
+    scoreB.push(score);
+    document.getElementById("scoreB").innerHTML = `Your Score: ${scoreB}`;
+  }
 
   // Game Over
-  gameoverMenu = document.getElementById("gameOver")
+  gameoverMenu = document.getElementById("gameOver");
 
-    let gameOver = false;
-    if(heroX +15  == bX ||heroY +15 == bY ){
-        gameOver=true;
-    }
+  if (
+    heroX <= bX + 24 &&
+    heroY <= bY + 24 &&
+    bX <= heroX + 24 &&
+    bY <= heroY + 24
+  ) {
+    gameOver = true;
+  }
 
-    if(gameOver){
-        ctx.clearRect(0,0,626,563);
-        startBtn.style.display = 'inline';
-    }
-    
-    // restartBtn.addEventListener("click",reset);
-
-    // function reset(){
-    //     update();
-    //     loadImages();
-    //     render();
-    // }
-  
-  
+  function restartBTn() {
+    update();
+    loadImages();
+    render();
+  }
 };
 
 /**
  * This function, render, runs as often as possible.
  */
-var render = function() {
+var render = function () {
   if (bgReady) {
     ctx.drawImage(bgImage, 0, 0);
   }
@@ -254,18 +285,16 @@ var render = function() {
   if (bulletReady && bX && bY) {
     ctx.drawImage(bullet, bX, bY);
   }
+  if (gameOver) {
+    ctx.clearRect(0, 0, 626, 563);
+    startBtn.style.display = "inline";
+  }
 
-  ctx.font = "30px Changa one"
-   ctx.fillText("Score : " +score,10,50);
-  
-   
-
-
-//   ctx.fillText(
-//     `Seconds Remaining: ${SECONDS_PER_ROUND - elapsedTime}`,
-//     20,
-//     100
-//   );
+  // ctx.font = "30px Changa one";
+  // ctx.fillText(`Score: ${score}`, 20, 35);
+  // document.getElementById("score-area").innerHTML = `${score}`;
+  // document.getElementById("high-score").innerHTML = getHighest("newHighScore");
+  // ctx.fillText("Score : " + score, 10, 50);
 };
 
 /**
@@ -274,16 +303,8 @@ var render = function() {
  * render (based on the state of our game, draw the right things)
  */
 
-var main = function() {
+var main = function () {
   update();
-  let gameOver = false;
-    if(heroX +15  == bX ||heroY +15 == bY ){
-        gameOver=true;
-    }
-
-    if(gameOver){
-        return;
-    }
   render();
   // Request to do this again ASAP. This is a special method
   // for web browsers.
